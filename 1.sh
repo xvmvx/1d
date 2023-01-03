@@ -43,24 +43,216 @@ FILE1=${pwd}
 yellow "${logo1}"
 red "########################################"
 blue "-----本机系统是：" ; green "${xitong%(Final)*}"
-blue "更新🆕🆕🆕.........."
-apt-get update && apt-get upgrade
-apt install git wget vim make
-red "修改SSH端口"
-read -p "输入要修改的端口号(默认29992）：" portNum
-each "Port 22">>/etc/ssh/sshd_config
-if [ ${portNum} != '0' ];then
-  each -n "Port "; ${portNum} >>/etc/ssh/sshd_config
+red "升级系统+更改时区+安装常用（git，wget等），go不go"
+read -p "：" go1
+if [[ "$go1" = "go" ]] then
+    strA=${xitong}
+    strB="ubuntu"
+    strC="centos"
+    result1=$(echo $strA | grep "${strB}")
+    result2=$(echo $strA | grep "${strC}")
+    if [[ "$result1" != "" ]] then
+        sudo apt-get update && sudo apt-get upgrade
+        sudo apt-get install git wget vim
+        echo net.core.default_qdisc=fq >> /etc/sysctl.conf
+        echo net.ipv4.tcp_congestion_control=bbr >> /etc/sysctl.conf
+        sysctl -p
+        sysctl net.ipv4.tcp_available_congestion_control
+    elif  [[ "$result2" != "" ]] then
+        sudo yum update && sudo yum upgrade
+        yum install wget git vim
+        wget -N --no-check-certificate "https://raw.githubusercontent.com/chiakge/Linux-NetSpeed/master/tcp.sh"
+        chmod +x tcp.sh
+        ./tcp.sh
+    fi
+    blue "更新🆕🆕🆕.........."
+    sudo timedatectl set-timezone Asia/Shanghai #改成上海
+    if [ $? = '0' ];then
+        blue "-----本机时区是：" ; green "Asia/Shanghai #改成上海"
+    fi
 fi
-each -n "Port 29992">>/etc/ssh/sshd_config  
-sudo service sshd restart
-red "新的端口已经生效,新开窗口测试登陆！！！ "
-red "新的端口已经生效,新开窗口测试登陆！！！ "
-red "新的端口已经生效,新开窗口测试登陆！！！ "
-yellow "修改密码："
-passwd
-yellow "新建用户："
-adduser
+red "修改SSH端口+修改root密码+添加用户，go不go"
+read -p "：" go2
+if [[ "$go2" = "go" ]] then
+    read -p "输入要修改的端口号(默认29992）：" portNum
+    each "Port 22">>/etc/ssh/sshd_config
+    if [ ${portNum} != '0' ];then
+      each -n "Port "; ${portNum} >>/etc/ssh/sshd_config
+    fi
+    each -n "Port 29992">>/etc/ssh/sshd_config  
+    sudo service sshd restart
+    red "新的端口已经生效,新开窗口测试登陆！！！ "
+    red "新的端口已经生效,新开窗口测试登陆！！！ "
+    red "新的端口已经生效,新开窗口测试登陆！！！ "
+    yellow "修改密码："
+    passwd
+    yellow "新建用户："
+    adduser
+fi
+
+red "alias+开启BBR+开启SWAG+测速管理，go不go"
+read -p "：" go3
+if [[ "$go3" = "go" ]] then
+cat > ~/.bashrc <<EOF
+# ~/.bashrc: executed by bash(1) for non-login shells.
+# see /usr/share/doc/bash/examples/startup-files (in the package bash-doc)
+# for examples
+
+# If not running interactively, don't do anything
+[ -z "$PS1" ] && return
+
+# don't put duplicate lines in the history. See bash(1) for more options
+# ... or force ignoredups and ignorespace
+HISTCONTROL=ignoredups:ignorespace
+
+# append to the history file, don't overwrite it
+shopt -s histappend
+
+# for setting history length see HISTSIZE and HISTFILESIZE in bash(1)
+HISTSIZE=1000
+HISTFILESIZE=2000
+
+# check the window size after each command and, if necessary,
+# update the values of LINES and COLUMNS.
+shopt -s checkwinsize
+
+# make less more friendly for non-text input files, see lesspipe(1)
+[ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
+
+# set variable identifying the chroot you work in (used in the prompt below)
+if [ -z "$debian_chroot" ] && [ -r /etc/debian_chroot ]; then
+    debian_chroot=$(cat /etc/debian_chroot)
+fi
+
+# set a fancy prompt (non-color, unless we know we "want" color)
+case "$TERM" in
+    xterm-color) color_prompt=yes;;
+esac
+
+# uncomment for a colored prompt, if the terminal has the capability; turned
+# off by default to not distract the user: the focus in a terminal window
+# should be on the output of commands, not on the prompt
+#force_color_prompt=yes
+
+if [ -n "$force_color_prompt" ]; then
+    if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
+        # We have color support; assume it's compliant with Ecma-48
+ # (ISO/IEC-6429). (Lack of such support is extremely rare, and such
+        # a case would tend to support setf rather than setaf.)
+        color_prompt=yes
+    else
+        color_prompt=
+    fi
+fi
+
+ #if [ "$color_prompt" = yes ]; then
+ #    PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+ #else
+ #    PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
+ #fi
+unset color_prompt force_color_prompt
+
+# If this is an xterm set the title to user@host:dir
+case "$TERM" in
+xterm*|rxvt*)
+    PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
+    ;;
+*)
+    ;;
+esac
+
+# enable color support of ls and also add handy aliases
+if [ -x /usr/bin/dircolors ]; then
+    test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
+    alias ls='ls --color=auto'
+    #alias dir='dir --color=auto'
+    #alias vdir='vdir --color=auto'
+
+    alias grep='grep --color=auto'
+    alias fgrep='fgrep --color=auto'
+    alias egrep='egrep --color=auto'
+fi
+
+# some more ls aliases
+PS1="\[\e[37;40m\][\[\e[30;42m\]\u\[\e[37;41m\]♚\h \[\e[37;44m\]\w\[\e[0m\]]\\$"
+alias ll='ls -alF'
+alias la='ls -A'
+alias l='ls -CF'        
+alias l.='ls -la'
+alias ..='cd ..'
+alias ...='cd ../..'
+alias cd~='cd ~'
+alias cc='cd /'
+alias r='rm -rf'
+alias dc='docker-compose up -d'
+alias dv='vim docker-compose.yml'
+b() { iptables -I INPUT -s "$1"; -j DROP;}
+alias cdd='cd /docker; ls;'   # 进入并打开
+c() { cd "$1"; ls;}   # 进入并打开
+m() { mkdir -p "$1"; cd "$1";}  # 创建并进入
+alias dps='docker ps'
+alias dpsa='docker ps -a'
+alias ds='docker stop'
+alias dr='docker rm'
+alias drn='docker network rm'
+alias dn='docker network ls'
+alias di='docker images'
+alias dri='docker rmi'
+alias v='vim'
+alias a='alias'
+alias f='find / -name'
+alias ch='chmod +x'
+alias salias='source ~/.bashrc'
+alias valias='vim ~/.bashrc'
+alias upda='sudo apt-get update && sudo apt-get upgrade'
+
+alias nnn='nmon'
+if [ -f ~/.bash_aliases ]; then
+    . ~/.bash_aliases
+fi
+alias mysql='docker exec -it  mysql bash'
+de() { docker exec -it "$1" /bin/bash;}
+alias psqlsu='su postgres'
+psqlin(){ psql -U "$1" -W}
+psqluser(){ CREATE USER "$1" WITH PASSWORD "$2";}
+psqldb(){ CREATE DATABASE "$1" OWNER "$2";}
+
+t() {
+    if [ -f $1 ] ; then
+      case $1 in
+        *.tar.bz2)   tar xjf $1     ;;
+        *.tar.gz)    tar xzf $1     ;;
+        *.bz2)       bunzip2 $1     ;;
+        *.rar)       unrar e $1     ;;
+        *.gz)        gunzip $1      ;;
+        *.tar)       tar xf $1      ;;
+        *.tbz2)      tar xjf $1     ;;
+        *.tgz)       tar xzf $1     ;;
+        *.zip)       unzip $1       ;;
+        *.Z)         uncompress $1  ;;
+        *.7z)        7z x $1        ;;
+        *)     echo "'$1' cannot be extracted via extract()" ;;
+         esac
+     else
+         echo "'$1' is not a valid file"
+     fi
+}
+swap(){
+wget -O "/root/swap.sh" "https://raw.githubusercontent.com/BlueSkyXN/ChangeSource/master/swap.sh" --no-check-certificate -T 30 -t 5 -d
+chmod +x "/root/swap.sh"
+chmod 777 "/root/swap.sh"
+blue "下载完成"
+blue "你也可以输入 bash /root/swap.sh 来手动运行"
+bash "/root/swap.sh"
+}
+EOF
+source ~/.bashrc
+swag
+fi
+
+red "安装Docker+Docker-compose+dockerd面板+npm，go不go"
+read -p "：" go4
+if [[ "$go4" = "go" ]] then
 yellow "安装Docker："
 apt-get remove docker docker-engine docker.io containerd run 
 sudo apt-get update && sudo apt-get install ca-certificates curl gnupg lsb-release
@@ -70,27 +262,50 @@ curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o 
  $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
 sudo apt-get update && sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin
 docker version
-if [ $? != '0' ];then
-  green "安装失败，人工检查！"
-  exit 1
-fi
+    if [ $? != '0' ];then
+      green "安装失败，人工检查！"
+      exit 1
+    fi
 sudo curl -L "https://github.com/docker/compose/releases/download/1.25.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 sudo chmod +x /usr/local/bin/docker-compose
 docker-compose version
-if [ $? != '0' ];then
-  green "安装失败，人工检查！"
-  exit 1
+    if [ $? != '0' ];then
+      green "安装失败，人工检查！"
+      exit 1
+    fi
+    if [ -d "/docker/" ];then
+      if [ -d "/docker/npm" ];then
+        rm -rf /docker/npm && mkdir /docker/npm
+      else
+        mkdir /docker/npm
+      fi
+    else
+      mkdir /docker && mkdir /docker/npm
+    fi
+    cd /docker/npm
+cat > docker-compose.yml <<EOF
+version: '3'
+services:
+  app:
+    image: 'jc21/nginx-proxy-manager:latest'
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '81:81'
+      - '443:443'
+    volumes:
+      - ./data:/data
+      - ./letsencrypt:/etc/letsencrypt
+EOF
+    lsof -i:81 || apt install lsof  #安装lsof
+    lsof -i:81 && docker-compose up -d
+    if [ $? = '0' ];then
+      green "npm安装成功  端口81 admin@example.com：changeme"
+      green "IP参考"
+      curl ifconfig.me
+      ip addr show docker0
+    fi
 fi
-cp bashrc.txt ~/.bashrc
-cd /
-mkdir docker && cd docker
-mkdir npm && cd npm
-cp ${FILE1}/npm.yml docker-compose.yml
-docker-compose up -d
-if [ $? = '0' ];then
-  green "npm安装成功"
-fi
-
 
 
 
