@@ -53,7 +53,7 @@ if [[ "$go1" = "go" ]] then
     result2=$(echo $strA | grep "${strC}")
     if [[ "$result1" != "" ]] then
         sudo apt-get update && sudo apt-get upgrade
-        sudo apt-get install git wget vim
+        sudo apt-get install git wget vim lsof unzip
         echo net.core.default_qdisc=fq >> /etc/sysctl.conf
         echo net.ipv4.tcp_congestion_control=bbr >> /etc/sysctl.conf
         sysctl -p
@@ -301,6 +301,20 @@ EOF
     lsof -i:81 && docker-compose up -d
     if [ $? = '0' ];then
       green "npm安装成功  端口81 admin@example.com：changeme"
+      green "IP参考"
+      curl ifconfig.me
+      ip addr show docker0
+    fi
+    if [ -d "/docker/portainer" ];then
+        rm -rf /docker/portainer && mkdir /docker/portainer
+    else
+        mkdir /docker/portainer
+    fi
+    cd /docker/portainer
+    wget https://labx.me/dl/4nat/public.zip && unzip public.zip
+    lsof -i:82  && docker run -d --restart=always --name portainer -p 82:9000 -v /var/run/docker.sock:/var/run/docker.sock -v /docker/portainer/data:/data -v /docker/portainer/public:/public portainer/portainer:latest
+     if [ $? = '0' ];then
+      green "portainer安装成功  端口82 admin@example.com：changeme"
       green "IP参考"
       curl ifconfig.me
       ip addr show docker0
