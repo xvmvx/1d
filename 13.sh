@@ -19,7 +19,7 @@ yellow " NPM 安装"
 yellow " Portainer 安装"
 red "安装Docker(1),Docker- compose(2),设置(3),NPM（4),Portainer（5）"
 read -p "："  ddd
-if [[ "$ddd" = "1" ]] then
+if [[ "$ddd" = "1" ]]; then
 yellow "安装Docker："
 apt-get remove docker docker-engine docker.io containerd run 
 sudo apt-get update && sudo apt-get install ca-certificates curl gnupg lsb-release
@@ -32,14 +32,14 @@ docker version
     if [ $? = '0' ]; then
         green "安装完成✅✅✅！"
         read -p "继续安装docker-compose（y）："  dc
-        if [[ "$dc" = "y" ]] then
+        if [[ "$dc" = "y" ]]; then
             docker-compose
         fi
-    elif [ $? != '0' ];then
+    elif [ $? != '0' ]; then
         red "安装失败，人工检查！"
         exit 1
     fi
-elif [[ "$ddd" = "2" ]] then
+elif [[ "$ddd" = "2" ]]; then
 yellow "安装Docker-compose："
 sudo curl -L "https://github.com/docker/compose/releases/download/1.25.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 sudo chmod +x /usr/local/bin/docker-compose 
@@ -48,7 +48,7 @@ docker-compose version
     if [ $? = '0' ]; then
         green "安装完成✅✅✅！"
         read -p "继续优化docker（y）："  ds
-        if [[ "$ds" = "y" ]] then
+        if [[ "$ds" = "y" ]]; then
             ds
         fi
         if [ -d "/docker/" ]; then
@@ -60,7 +60,7 @@ docker-compose version
         red "安装失败，人工检查！"
         exit 1
     fi
-elif [[ "$ddd" = "3" ]] then
+elif [[ "$ddd" = "3" ]]; then
 cat > /etc/docker/daemon.json <<EOF
 {
     "log-driver": "json-file",
@@ -78,14 +78,14 @@ sudo systemctl restart docker && sudo systemctl enable docker
      if [ $? = '0' ]; then
         green "优化完成✅✅✅！"
         read -p "继续安装npm（y）："  npm
-        if [[ "$npm" = "y" ]] then
+        if [[ "$npm" = "y" ]]; then
             npm
         fi
     elif [ $? != '0' ]; then
         red "安装失败，人工检查！"
         exit 1
     fi
-elif [[ "$ddd" = "4" ]] then
+elif [[ "$ddd" = "4" ]]; then
 # npm
 myFILE="npm"  
 myPORT="81"
@@ -110,21 +110,21 @@ services:
       - ./letsencrypt:/etc/letsencrypt
 EOF
 lsof -i:${myPORT} && docker-compose up -d
-    if [ $? = '0' ];then
+    if [ $? = '0' ]; then
     green "${myFILE} 安装成功✅✅✅！  端口:${myPORT}"
     yello "其他注意事项⚠️⚠️⚠️： admin@example.com：changeme"
     green "IP参考"
     curl ifconfig.me
     ip addr show docker0
     read -p "继续安装面板（y）："  pro
-        if [[ "$pro" = "y" ]] then
+        if [[ "$pro" = "y" ]]; then
             pro
         fi
     elif [ $? != '0' ]; then
         red "安装失败，人工检查！"
         exit 1
     fi
-elif [[ "$ddd" = "5" ]] then
+elif [[ "$ddd" = "5" ]]; then
 # portainer
 myFILE="portainer"  
 myPORT="82"
@@ -153,7 +153,7 @@ lsof -i:${myPORT} && sudo docker-compose up -d
 # if [ $? != '0' ];then
 #    docker run -d -p 882:8000 -p 82:9443 --name portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v /docker/portainer/data:/data portainer/portainer-ce:latest
 # fi
-    if [ $? = '0' ];then
+    if [ $? = '0' ]; then
         green "${myFILE} 安装成功✅✅✅  端口:${myPORT}"
         yello "其他注意事项⚠️⚠️⚠️： 使用https登录，异常处理：sudo docker restart portainer"
         green "IP参考"
@@ -164,48 +164,3 @@ lsof -i:${myPORT} && sudo docker-compose up -d
         exit 1
     fi
 fi
-
-
-
-#!/bin/sh
-#
-# 安装Instant Box脚本。 首页：https://github.com/instantbox/instantbox。
-# 用法：
-#  mkdir instantbox && cd $_
-#  bash <(curl -sSL https://raw.githubusercontent.com/instantbox/instantbox/master/init.sh)"
-#  docker-compose up -d
-#
-
-check_cmd() {
-    command -v "$1" >/dev/null 2>&1
-}
-
-echo "准备安装instantbox, 等待..."
-echo ""
-
-if check_cmd docker; then
-    echo "docker已安装"
-else
-    echo "docker没有安装，请安装"
-    exit 1
-fi
-
-if check_cmd docker-compose; then
-    echo "docker-compose已安装"
-else
-    curl -sSL https://raw.githubusercontent.com/docker/compose/master/script/run/run.sh > /usr/local/bin/docker-compose
-    chmod +x /usr/local/bin/docker-compose || exit 1
-fi
-
-curl -sSLO https://raw.githubusercontent.com/instantbox/instantbox/master/docker-compose.yml
-
-echo "输入你的IP，默认回车: "
-read IP
-echo "输入你的端口，默认回车(8888): "
-read PORT
-
-[  -z "$IP" ] || sed -i -e "s/SERVERURL=$/SERVERURL=$IP/" docker-compose.yml
-[  -z "$PORT" ] || sed -i -e "s/8888:80/$PORT:80/" docker-compose.yml
-
-echo "已完成设置! "
-echo "运行 'docker-compose up -d' 成功后在浏览器打开 http://${IP:-localhost}:${PORT:-8888} "
