@@ -20,27 +20,49 @@ curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o 
  $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
 sudo apt-get update && sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin
 docker version
-    if [ $? != '0' ];then
-      green "安装失败，人工检查！"
-      exit 1
-    fi
+if [ $? != '0' ];then
+    red "安装失败，人工检查！"
+    exit 1
+fi
+cat > /etc/docker/daemon.json <<EOF
+{
+    "log-driver": "json-file",
+    "log-opts": {
+        "max-size": "20m",
+        "max-file": "3"
+    },
+    "ipv6": true,
+    "fixed-cidr-v6": "fd00:dead:beef:c0::/80",
+    "experimental":true,
+    "ip6tables":true
+}
+EOF
+sudo systemctl restart docker && sudo systemctl enable docker
 sudo curl -L "https://github.com/docker/compose/releases/download/1.25.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose 
+sudo apt install lsof
 docker-compose version
-    if [ $? != '0' ];then
-      green "安装失败，人工检查！"
-      exit 1
-    fi
-    if [ -d "/docker/" ];then
-      if [ -d "/docker/npm" ];then
-        rm -rf /docker/npm && mkdir /docker/npm
-      else
-        mkdir /docker/npm
-      fi
+if [ $? = '0' ]; then
+    if [ -d "/docker/" ]; then
+        green "安装完成✅✅✅！"
     else
-      mkdir /docker && mkdir /docker/npm
+        mkdir /docker
     fi
-    cd /docker/npm
+elif [ $? != '0' ]; then
+    red "安装失败，人工检查！"
+    exit 1
+fi
+
+
+# npm
+myFILE="npm"  
+myPORT="81"
+if [ -d "/docker/${myFILE}" ]; then
+    rm -rf /docker/${myFILE} && mkdir /docker/${myFILE}
+else
+    mkdir /docker/${myFILE}
+fi
+cd /docker/${myFILE}
 cat > docker-compose.yml <<EOF
 version: '3'
 services:
@@ -55,28 +77,33 @@ services:
       - ./data:/data
       - ./letsencrypt:/etc/letsencrypt
 EOF
-    lsof -i:81 || apt install lsof  #安装lsof
-    lsof -i:81 && docker-compose up -d
-    if [ $? = '0' ];then
-      green "npm安装成功  端口81 admin@example.com：changeme"
-      green "IP参考"
-      curl ifconfig.me
-      ip addr show docker0
-    fi
-    if [ -d "/docker/portainer" ];then
-        rm -rf /docker/portainer && mkdir /docker/portainer
-    else
-        mkdir /docker/portainer
-    fi
-    cd /docker/portainer
-    wget https://labx.me/dl/4nat/public.zip && unzip public.zip
-    lsof -i:82  && docker run -d --restart=always --name portainer -p 82:9000 -v /var/run/docker.sock:/var/run/docker.sock -v /docker/portainer/data:/data -v /docker/portainer/public:/public portainer/portainer:latest
-     if [ $? != '0' ];then
-        docker run -d -p 882:8000 -p 82:9443 --name portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v /docker/portainer/data:/data portainer/portainer-ce:latest
-     fi
-     if [ $? = '0' ];then
-      green "portainer安装成功  端口82 使用https登录，异常处理：sudo docker restart portainer"
-      green "IP参考"
-      curl ifconfig.me
-      ip addr show docker0
-    fi
+lsof -i:${myPORT} && docker-compose up -d
+if [ $? = '0' ];then
+green "${myFILE} 安装成功  端口:${myPORT}"
+yello "其他注意事项⚠️⚠️⚠️： admin@example.com：changeme"
+green "IP参考"
+curl ifconfig.me
+ip addr show docker0
+fi
+
+# portainer
+myFILE="portainer"  
+myPORT="82"
+if [ -d "/docker/${myFILE}" ]; then
+    rm -rf /docker/${myFILE} && mkdir /docker/${myFILE}
+else
+    mkdir /docker/${myFILE}
+fi
+cd /docker/${myFILE}
+wget https://labx.me/dl/4nat/public.zip && unzip public.zip
+lsof -i:82  && docker run -d --restart=always --name portainer -p 82:9000 -v /var/run/docker.sock:/var/run/docker.sock -v /docker/portainer/data:/data -v /docker/portainer/public:/public portainer/portainer:latest
+if [ $? != '0' ];then
+    docker run -d -p 882:8000 -p 82:9443 --name portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v /docker/portainer/data:/data portainer/portainer-ce:latest
+fi
+if [ $? = '0' ];then
+    green "${myFILE} 安装成功  端口:${myPORT}"
+    yello "其他注意事项⚠️⚠️⚠️： 使用https登录，异常处理：sudo docker restart portainer"
+    green "IP参考"
+    curl ifconfig.me
+    ip addr show docker0
+fi
