@@ -36,8 +36,8 @@ $(tput sgr0)"
 xitong=$(cat /etc/issue)
 IP1=$(curl ip.sb)
 IP2=$(ip route get 1 | awk '{print $7;exit}')
-FILE1=${pwd}
-cp .bashrc ~/.bashrc
+mv  ~/.bashrc  ~/.bashrc1
+cp my.bashrc ~/.bashrc
 source ~/.bashrc
 #ubuntu
 yellow "${logo1}"
