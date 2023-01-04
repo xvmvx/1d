@@ -37,23 +37,43 @@ xitong=$(cat /etc/issue)
 IP1=$(curl ip.sb)
 IP2=$(ip route get 1 | awk '{print $7;exit}')
 FILE1=${pwd}
-
+    if grep -Eqii "CentOS" /etc/issue || grep -Eq "CentOS" /etc/*-release; then
+        DISTRO='CentOS'
+        PM='yum'
+        sudo yum update && sudo yum upgrade
+        yum install wget git vim
+        wget -N --no-check-certificate "https://raw.githubusercontent.com/chiakge/Linux-NetSpeed/master/tcp.sh"
+        chmod +x tcp.sh
+        ./tcp.sh
+    elif grep -Eqi "Red Hat Enterprise Linux Server" /etc/issue || grep -Eq "Red Hat Enterprise Linux Server" /etc/*-release; then
+        DISTRO='RHEL'
+        PM='yum'
+    elif grep -Eqi "Aliyun" /etc/issue || grep -Eq "Aliyun" /etc/*-release; then
+        DISTRO='Aliyun'
+        PM='yum'
+    elif grep -Eqi "Fedora" /etc/issue || grep -Eq "Fedora" /etc/*-release; then
+        DISTRO='Fedora'
+        PM='yum'
+    elif grep -Eqi "Debian" /etc/issue || grep -Eq "Debian" /etc/*-release; then
+        DISTRO='Debian'
+        PM='apt'
+    elif grep -Eqi "Ubuntu" /etc/issue || grep -Eq "Ubuntu" /etc/*-release; then
+        DISTRO='Ubuntu'
+        PM='apt'
+        sudo apt-get update && sudo apt-get upgrade
+        sudo apt-get install git wget vim lsof unzip
+        echo net.core.default_qdisc=fq >> /etc/sysctl.conf
+        echo net.ipv4.tcp_congestion_control=bbr >> /etc/sysctl.conf
+        sysctl -p
+        sysctl net.ipv4.tcp_available_congestion_control
+    elif grep -Eqi "Raspbian" /etc/issue || grep -Eq "Raspbian" /etc/*-release; then 
+        DISTRO='Raspbian'
+        PM='apt'
+    else
+        DISTRO='unknow'
+    fi
+    echo $DISTRO;
 clear
-if [ ${name} = "Ubuntu" ] then
-
-  sudo apt-get update && sudo apt-get upgrade
-  sudo apt-get install git wget vim lsof unzip
-  echo net.core.default_qdisc=fq >> /etc/sysctl.conf
-  echo net.ipv4.tcp_congestion_control=bbr >> /etc/sysctl.conf
-  sysctl -p
-  sysctl net.ipv4.tcp_available_congestion_control
-elif  [[ "$name" = "CentOS" ]] then
-  sudo yum update && sudo yum upgrade
-  yum install wget git vim
-  wget -N --no-check-certificate "https://raw.githubusercontent.com/chiakge/Linux-NetSpeed/master/tcp.sh"
-  chmod +x tcp.sh
-  ./tcp.sh
-fi
 blue "更新🆕🆕🆕.........."
 sudo timedatectl set-timezone Asia/Shanghai #改成上海
 if [ $? = '0' ];then
@@ -77,5 +97,5 @@ if [[ "$go1" = "1" ]] then
     yellow "新建用户："
     adduser
 elif [[ "$go1" = "0" ]] then
-seacuse 1.sh
+source 1.sh
 fi
