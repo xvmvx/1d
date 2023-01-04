@@ -76,15 +76,15 @@ FILE1=${pwd}
 clear
 blue "更新🆕🆕🆕.........."
 sudo timedatectl set-timezone Asia/Shanghai #改成上海
-if [ $? = '0' ];then
+if [ $? = '0' ]; then
   blue "-----本机时区是：" ; green "Asia/Shanghai #改成上海"
 fi
 red "升级系统+更改时区+安装常用（git，wget等）完成，继续修改SSH端口+修改root密码+添加用户（1）"
 read -p "返回上层（0），其他退出：" go1
-if [[ "$go1" = "1" ]] then
+if [[ "$go1" = "1" ]] ; then
     read -p "输入要修改的端口号(默认29992）：" portNum
     each "Port 22">>/etc/ssh/sshd_config
-    if [ ${portNum} != '0' ];then
+    if [ ${portNum} != '0' ]; then
       each -n "Port "; ${portNum} >>/etc/ssh/sshd_config
     fi
     each -n "Port 29992">>/etc/ssh/sshd_config  
@@ -96,6 +96,6 @@ if [[ "$go1" = "1" ]] then
     passwd
     yellow "新建用户："
     adduser
-elif [[ "$go1" = "0" ]] then
+elif [[ "$go1" = "0" ]]; then
 source 1.sh
 fi
