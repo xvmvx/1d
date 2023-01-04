@@ -38,7 +38,7 @@ IP1=$(curl ip.sb)
 IP2=$(ip route get 1 | awk '{print $7;exit}')
 mv  ~/.bashrc  ~/.bashrc1
 cp my.bashrc ~/.bashrc
-source ~/.bashrc
+sudo source ~/.bashrc
 #ubuntu
 yellow "${logo1}"
 red "########################################"
