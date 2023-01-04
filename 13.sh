@@ -167,118 +167,45 @@ fi
 
 
 
+#!/bin/sh
+#
+# 安装Instant Box脚本。 首页：https://github.com/instantbox/instantbox。
+# 用法：
+#  mkdir instantbox && cd $_
+#  bash <(curl -sSL https://raw.githubusercontent.com/instantbox/instantbox/master/init.sh)"
+#  docker-compose up -d
+#
 
+check_cmd() {
+    command -v "$1" >/dev/null 2>&1
+}
 
-docker-compose(){
-yellow "安装Docker-compose："
-sudo curl -L "https://github.com/docker/compose/releases/download/1.25.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose 
-sudo apt install lsof
-docker-compose version
-if [ $? = '0' ]; then
-    if [ -d "/docker/" ]; then
-        green "安装完成✅✅✅！"
-    else
-        mkdir /docker
-    fi
-elif [ $? != '0' ]; then
-    red "安装失败，人工检查！"
+echo "准备安装instantbox, 等待..."
+echo ""
+
+if check_cmd docker; then
+    echo "docker已安装"
+else
+    echo "docker没有安装，请安装"
     exit 1
 fi
-}
 
-
-
-
-
-ds(){
-cat > /etc/docker/daemon.json <<EOF
-{
-    "log-driver": "json-file",
-    "log-opts": {
-        "max-size": "20m",
-        "max-file": "3"
-    },
-    "ipv6": true,
-    "fixed-cidr-v6": "fd00:dead:beef:c0::/80",
-    "experimental":true,
-    "ip6tables":true
-}
-EOF
-sudo systemctl restart docker && sudo systemctl enable docker
-}
-
-
-
-
-
-npm(){
-myFILE="npm"  
-myPORT="81"
-if [ -d "/docker/${myFILE}" ]; then
-    rm -rf /docker/${myFILE} && mkdir /docker/${myFILE}
+if check_cmd docker-compose; then
+    echo "docker-compose已安装"
 else
-    mkdir /docker/${myFILE}
+    curl -sSL https://raw.githubusercontent.com/docker/compose/master/script/run/run.sh > /usr/local/bin/docker-compose
+    chmod +x /usr/local/bin/docker-compose || exit 1
 fi
-cd /docker/${myFILE}
-cat > docker-compose.yml <<EOF
-version: '3'
-services:
-  app:
-    image: 'jc21/nginx-proxy-manager:latest'
-    restart: unless-stopped
-    ports:
-      - '80:80'
-      - '81:81'
-      - '443:443'
-    volumes:
-      - ./data:/data
-      - ./letsencrypt:/etc/letsencrypt
-EOF
-lsof -i:${myPORT} && docker-compose up -d
-if [ $? = '0' ];then
-green "${myFILE} 安装成功  端口:${myPORT}"
-yello "其他注意事项⚠️⚠️⚠️： admin@example.com：changeme"
-green "IP参考"
-curl ifconfig.me
-ip addr show docker0
-fi
-}
 
+curl -sSLO https://raw.githubusercontent.com/instantbox/instantbox/master/docker-compose.yml
 
-portainer(){
-myFILE="portainer"  
-myPORT="82"
-if [ -d "/docker/${myFILE}" ]; then
-    rm -rf /docker/${myFILE} && mkdir /docker/${myFILE}
-else
-    mkdir /docker/${myFILE}
-fi
-cd /docker/${myFILE} && cat > docker-compose.yml <<EOF
-version: "3"
-services:
-  portainer:
-      image: portainer/portainer
-      volumes:
-        - /var/run/docker.sock:/var/run/docker.sock
-        - ~/portainer/data:/data
-      ports:
-        - 82:9000 
-      container_name: portainer
-volumes:
-    data: 
-EOF
-lsof -i:${myPORT} && sudo docker-compose up -d
-# wget https://labx.me/dl/4nat/public.zip && unzip public.zip
-# lsof -i:82  && docker run -d --restart=always --name portainer -p 82:9000 -v /var/run/docker.sock:/var/run/docker.sock -v /docker/portainer/data:/data -v /docker/portainer/public:/public portainer/portainer:latest
-# if [ $? != '0' ];then
-#    docker run -d -p 882:8000 -p 82:9443 --name portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v /docker/portainer/data:/data portainer/portainer-ce:latest
-# fi
-if [ $? = '0' ];then
-    green "${myFILE} 安装成功  端口:${myPORT}"
-    yello "其他注意事项⚠️⚠️⚠️： 使用https登录，异常处理：sudo docker restart portainer"
-    green "IP参考"
-    curl ifconfig.me
-    ip addr show docker0
-fi
-}
+echo "输入你的IP，默认回车: "
+read IP
+echo "输入你的端口，默认回车(8888): "
+read PORT
+
+[  -z "$IP" ] || sed -i -e "s/SERVERURL=$/SERVERURL=$IP/" docker-compose.yml
+[  -z "$PORT" ] || sed -i -e "s/8888:80/$PORT:80/" docker-compose.yml
+
+echo "已完成设置! "
+echo "运行 'docker-compose up -d' 成功后在浏览器打开 http://${IP:-localhost}:${PORT:-8888} "
