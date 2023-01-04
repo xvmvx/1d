@@ -47,7 +47,7 @@ if [ ${name} = "Ubuntu" ] then
   echo net.ipv4.tcp_congestion_control=bbr >> /etc/sysctl.conf
   sysctl -p
   sysctl net.ipv4.tcp_available_congestion_control
-elif  [[ "$anme" = "CentOS" ]] then
+elif  [[ "$name" = "CentOS" ]] then
   sudo yum update && sudo yum upgrade
   yum install wget git vim
   wget -N --no-check-certificate "https://raw.githubusercontent.com/chiakge/Linux-NetSpeed/master/tcp.sh"
