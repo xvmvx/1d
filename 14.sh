@@ -16,7 +16,8 @@ red "############  Wiki  #################"
 yellow " Wiki文档项目"
 yellow "个人知识库——Trilium"
 yellow "同步工具——Syncthing"
-red "安装Wiki文档项目(1),个人知识库——Trilium(2),同步工具——Syncthing(3)"
+yellow "简洁的记事本——minimalist-web-notepad"
+red "安装Wiki文档项目(1),个人知识库——Trilium(2),同步工具——Syncthing(3),简洁的记事本94),为之笔记（5）"
 read -p "："  wiki
 if [[ "$wiki" = "1" ]] then
 # Wiki文档项目 Wikijs
@@ -126,7 +127,47 @@ EOF
 lsof -i:${myPORT} && docker-compose up -d
 if [ $? = '0' ]; then
   green "${myFILE} 安装成功  端口:${myPORT}"
-  yellow "其他注意事项⚠️⚠️⚠️： admin@example.com：changeme"
+  yellow "其他注意事项⚠️⚠️⚠️：  "
   green "npm：Block。websock....。force。http2...。"
+fi
+
+
+elif [[ "$wiki" = "4" ]] then
+#简洁的记事本——minimalist-web-notepad
+myFILE="minimalist"  
+myPORT="64"
+if [ -d "/docker/${myFILE}" ]; then
+    rm -rf /docker/${myFILE} && mkdir /docker/${myFILE}
+else
+    mkdir /docker/${myFILE}
+fi
+cd /docker/${myFILE}
+sed -i "s|if (bind_user == 'True') {|if (bind_user == 'REMOVED') {|g" /www/server/panel/BTPanel/static/js/index.js
+rm -rf /www/server/panel/data/bind.pl
+wget https://github.com/pereorga/minimalist-web-notepad/archive/refs/heads/docker.zip
+
+docker build -t minimalist-web-notepad .
+docker run -d -it --restart=always --name minimalist-web-notepad -v /docker/minimalist/minimalist-data:/var/www/html/_tmp -p 64:80 minimalist-web-notepad
+if [ $? = '0' ];then
+  green "${myFILE} 安装成功  端口:${myPORT}"
+  yellow "其他注意事项⚠️⚠️⚠️：  "
+  green "npm：Block。websock....。force。http2...。"
+fi
+
+
+elif [[ "$wiki" = "5" ]] then
+
+#为知笔记
+myFILE="weizhi"  
+myPORT="65"
+if [ -d "/docker/${myFILE}" ]; then
+    rm -rf /docker/${myFILE} && mkdir /docker/${myFILE}
+else
+    mkdir /docker/${myFILE}
+fi
+cd /docker/${myFILE}
+docker run --name wiz --restart=always -it -d -v  ~/wizdata:/wiz/storage -v  /etc/localtime:/etc/localtime -p 65:80 -p 9269:9269/udp  wiznote/wizserver
+if [ $? = '0' ];then
+  green "为知笔记 安装成功  端口98"
 fi
 fi
