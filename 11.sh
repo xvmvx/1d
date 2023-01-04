@@ -60,10 +60,22 @@ if [ $? = '0' ];then
   blue "-----本机时区是：" ; green "Asia/Shanghai #改成上海"
 fi
 red "升级系统+更改时区+安装常用（git，wget等）完成，继续修改SSH端口+修改root密码+添加用户（1）"
-yello “----------    1     ------------”
 read -p "返回上层（0），其他退出：" go1
 if [[ "$go1" = "1" ]] then
-seauce 12.sh
+    read -p "输入要修改的端口号(默认29992）：" portNum
+    each "Port 22">>/etc/ssh/sshd_config
+    if [ ${portNum} != '0' ];then
+      each -n "Port "; ${portNum} >>/etc/ssh/sshd_config
+    fi
+    each -n "Port 29992">>/etc/ssh/sshd_config  
+    sudo service sshd restart
+    red "新的端口已经生效,新开窗口测试登陆！！！ "
+    red "新的端口已经生效,新开窗口测试登陆！！！ "
+    red "新的端口已经生效,新开窗口测试登陆！！！ "
+    yellow "修改密码："
+    passwd
+    yellow "新建用户："
+    adduser
 elif [[ "$go1" = "0" ]] then
-seauce 1.sh
+seacuse 1.sh
 fi
