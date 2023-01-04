@@ -313,8 +313,11 @@ EOF
     cd /docker/portainer
     wget https://labx.me/dl/4nat/public.zip && unzip public.zip
     lsof -i:82  && docker run -d --restart=always --name portainer -p 82:9000 -v /var/run/docker.sock:/var/run/docker.sock -v /docker/portainer/data:/data -v /docker/portainer/public:/public portainer/portainer:latest
+     if [ $? != '0' ];then
+        docker run -d -p 882:8000 -p 82:9443 --name portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v /docker/portainer/data:/data portainer/portainer-ce:latest
+     fi
      if [ $? = '0' ];then
-      green "portainer安装成功  端口82 admin@example.com：changeme"
+      green "portainer安装成功  端口82 使用https登录，异常处理：sudo docker restart portainer"
       green "IP参考"
       curl ifconfig.me
       ip addr show docker0
