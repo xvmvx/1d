@@ -21,46 +21,33 @@ red "安装Docker(1),Docker- compose(2),设置(3),NPM（4),Portainer（5）"
 read -p "："  ddd
 if [[ "$ddd" = "1" ]]; then
 yellow "安装Docker："
-apt-get remove docker docker-engine docker.io containerd run 
-sudo apt-get update && sudo apt-get install ca-certificates curl gnupg lsb-release
+sudo apt-get remove docker docker-engine docker.io containerd runc
+sudo apt-get update && sudo apt-get install  ca-certificates  curl  gnupg  lsb-release
 sudo mkdir -p /etc/apt/keyrings
-curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
- echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian \
- $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
-sudo apt-get update && sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin
-docker version || sudo apt  install docker.io 
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+ sudo apt-get update || sudo chmod a+r /etc/apt/keyrings/docker.gpg && sudo apt-get update
+ sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin
+ if [ $? = '0' ]; then
+  echo '安装成功【docker】'
+ else
+  curl -fsSL https://get.docker.com | bash -s docker
+ fi
+# docker-dompose
+sudo apt install docker-compose || curl -L https://github.com/docker/compose/releases/download/v2.14.0/docker-compose-linux-`uname -m` > ./docker-compose
+ if [ $? = '0' ]; then
+  echo '安装成功【docker】【docker-compose】'
+ else
+    bash <(curl -sSL https://gitee.com/SuperManito/LinuxMirrors/raw/main/DockerInstallation.sh)
+ fi
     if [ $? = '0' ]; then
         green "安装完成✅✅✅！"
-        read -p "继续安装docker-compose（y）："  dc
-        if [[ "$dc" = "y" ]]; then
-            docker-compose
-        fi
     elif [ $? != '0' ]; then
         red "安装失败，人工检查！"
         exit 1
     fi
-elif [[ "$ddd" = "2" ]]; then
-yellow "安装Docker-compose："
-sudo curl -L "https://github.com/docker/compose/releases/download/1.25.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose 
-sudo apt install lsof
-docker-compose version
-    if [ $? = '0' ]; then
-        green "安装完成✅✅✅！"
-        read -p "继续优化docker（y）："  ds
-        if [[ "$ds" = "y" ]]; then
-            ds
-        fi
-        if [ -d "/docker/" ]; then
-            green "/docker/创建！"
-        else
-            mkdir /docker
-        fi
-    elif [ $? != '0' ]; then
-        red "安装失败，人工检查！"
-        exit 1
-    fi
-elif [[ "$ddd" = "3" ]]; then
 cat > /etc/docker/daemon.json <<EOF
 {
     "log-driver": "json-file",
@@ -77,15 +64,10 @@ EOF
 sudo systemctl restart docker && sudo systemctl enable docker
      if [ $? = '0' ]; then
         green "优化完成✅✅✅！"
-        read -p "继续安装npm（y）："  npm
-        if [[ "$npm" = "y" ]]; then
-            npm
-        fi
     elif [ $? != '0' ]; then
-        red "安装失败，人工检查！"
+        red "优化失败，人工检查！"
         exit 1
     fi
-elif [[ "$ddd" = "4" ]]; then
 # npm
 myFILE="npm"  
 myPORT="81"
@@ -94,8 +76,8 @@ if [ -d "/docker/${myFILE}" ]; then
 else
     mkdir /docker/${myFILE}
 fi
-cd /docker/${myFILE}
-cat > docker-compose.yml <<EOF
+cd /
+cd /docker/${myFILE} && cat > docker-compose.yml <<EOF
 version: '3'
 services:
   app:
@@ -124,7 +106,6 @@ lsof -i:${myPORT} && docker-compose up -d
         red "安装失败，人工检查！"
         exit 1
     fi
-elif [[ "$ddd" = "5" ]]; then
 # portainer
 myFILE="portainer"  
 myPORT="82"
@@ -133,7 +114,12 @@ if [ -d "/docker/${myFILE}" ]; then
 else
     mkdir /docker/${myFILE}
 fi
-cd /docker/${myFILE} && cat > docker-compose.yml <<EOF
+cd /
+cd /docker/${myFILE} && docker run -d --restart=always --name="portainer" -p 82:9000 -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data 6053537/portainer-ce
+alias dopro1='sh -c "$(curl -kfsSl https://gitee.com/expin/public/raw/master/onex86.sh)"'
+alias dopro2='
+
+cat > docker-compose.yml <<EOF
 version: "3"
 services:
   portainer:
