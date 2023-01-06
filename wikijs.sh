@@ -1,6 +1,6 @@
 #!/bin/bash
 myFILE="wikijs"  
-myPORT="721"
+myPORT="72"
 sudo apt update -y  # 升级packages
 sudo apt install wget curl sudo vim git  # Debian系统比较干净，安装常用的软件
 mkdir -p /docker/wikijs && cd /docker/wikijs
