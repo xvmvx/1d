@@ -1,0 +1,1 @@
+echo "mail.pch18.cn" > /etc/hostname  #改主机名
