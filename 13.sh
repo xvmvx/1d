@@ -117,7 +117,7 @@ fi
 cd /
 cd /docker/${myFILE} && docker run -d --restart=always --name="portainer" -p 82:9000 -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data 6053537/portainer-ce
 alias dopro1='sh -c "$(curl -kfsSl https://gitee.com/expin/public/raw/master/onex86.sh)"'
-alias dopro2='
+
 
 cat > docker-compose.yml <<EOF
 version: "3"
@@ -133,7 +133,16 @@ services:
 volumes:
     data: 
 EOF
-lsof -i:${myPORT} && sudo docker-compose up -d
+lsof -i:${myPORT} 
+if [ $? = '0' ]; then
+    echo "指定端口已占用，详情：       "
+lsof -i:${myPORT} 
+    read -p "输入要关闭的进程PID：" inPID
+    kill -9 ${inPID}
+else
+
+fi
+sudo docker-compose up -d
 # wget https://labx.me/dl/4nat/public.zip && unzip public.zip
 # lsof -i:82  && docker run -d --restart=always --name portainer -p 82:9000 -v /var/run/docker.sock:/var/run/docker.sock -v /docker/portainer/data:/data -v /docker/portainer/public:/public portainer/portainer:latest
 # if [ $? != '0' ];then
