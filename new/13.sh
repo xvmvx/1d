@@ -22,19 +22,32 @@ read -p "："  ddd
 if [[ "$ddd" = "1" ]]; then
 yellow "安装Docker："
 sudo apt-get remove docker docker-engine docker.io containerd runc
-sudo apt-get update && sudo apt-get install  ca-certificates  curl  gnupg  lsb-release
+sudo apt-get update 
+sudo apt-get install  ca-certificates  curl  gnupg  lsb-release
 sudo mkdir -p /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 echo \
   "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
   $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
- sudo apt-get update || sudo chmod a+r /etc/apt/keyrings/docker.gpg && sudo apt-get update
+ sudo apt-get update
  sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin
- if [ $? = '0' ]; then
-  echo '安装成功【docker】'
- else
-  curl -fsSL https://get.docker.com | bash -s docker
- fi
+    if [ $? = '0' ]; then
+        green "Docker...安装完成✅✅✅！"
+    else
+        red "安装失败，可输入数字尝试一键安装！"
+        echo -n "输入要使用的安装命令：      > "
+        read character
+        case $character in
+          1 ) 
+            curl -fsSL https://get.docker.com | bash -s docker
+            ;;
+          2 ) echo 2
+            ;;
+          3 ) echo 3
+            ;;
+          * ) echo 输入不符合要求
+        esac          
+    fi
 # docker-dompose
 sudo apt install docker-compose || curl -L https://github.com/docker/compose/releases/download/v2.14.0/docker-compose-linux-`uname -m` > ./docker-compose
  if [ $? = '0' ]; then
