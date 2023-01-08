@@ -52,24 +52,40 @@ myIP1=$(curl ip.sb)
 myIP2=$(ip route get 1 | awk '{print $7;exit}')
 yellow "${logo1}"
 red "########################################"
-if [[ ${MY} == "debian" ]]; then
-  sudo apt-get update && sudo apt-get upgrade
-  sudo apt-get install git wget vim lsof unzip
-elif [[ ${MY} == "ubuntu" ]]; then
-  sudo apt-get update && sudo apt-get upgrade
-  sudo apt-get install git wget vim lsof unzip
-elif [[ ${MY} == "centos" ]]; then
-  sudo yum update && sudo yum upgrade
-  yum install wget git vim
+blue "工欲善其事，必先利其器！"
+green "从优化系统环境开始（y），当然，你可以选择其他的更多选择（0）。。。。。。。"
+read -p "所以请选择你的选择，除非跳过时按0，就直接回车吧。。。" reME
+if [[ ${reME} = "y" ]]; then
+    if [[ ${MY} == "debian" ]]; then
+      sudo apt-get update && sudo apt-get upgrade
+      sudo apt-get install git wget vim lsof unzip
+    elif [[ ${MY} == "ubuntu" ]]; then
+      sudo apt-get update && sudo apt-get upgrade
+      sudo apt-get install git wget vim lsof unzip
+    elif [[ ${MY} == "centos" ]]; then
+      sudo yum update && sudo yum upgrade
+      yum install wget git vim
+    fi
+    green "系统更新。。。完成✅✅✅！"
+    mv ~/.bashrc ~/.bashrc.back
+    cp my.bashrc ~/.bashrc
+    source ~/.bashrc
+    green "linux命令alias化。。。完成✅✅✅！"
+    sudo timedatectl set-timezone Asia/Shanghai #改成上海
+    green "更改时区为上海。。。完成✅✅✅！"
+    read -p "修改SSH端口号（y），确认修改：       " changeSSH
+    if [[ "$changeSSH" = "y" ]] ; then
+      source ssh22.sh
+      green "更改SSH端口。。。完成✅✅✅！"
+    fi
+    read -p "增加root用户（y），确认添加：       " addUS
+    if [[ "$addUS" = "y" ]] ; then
+      source addUSER.sh
+      green "增加root用户。。。完成✅✅✅！"
+    fi
+elif [[ ${reME} = "0" ]]; then
+    blue -e "人之初（玩电脑），性本善（玩电脑）："
 fi
-cp my.bashrc ~/.bashrc
-source ~/.bashrc
-sudo timedatectl set-timezone Asia/Shanghai #改成上海
-read -p "修改SSH端口号（y），确认修改：       " changeSSH
-if [[ "$changeSSH" = "y" ]] ; then
-  source ssh22.sh
-fi
-blue -e "请选择要安装的面板："
 yellow "1. 宝塔面板"
 yellow "2. AMH面板"
 yellow "3. DOCKER"
