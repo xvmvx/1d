@@ -116,8 +116,3 @@ sudo apt update
 apt-cache policy docker-ce
 sudo apt install docker-ce
 sudo systemctl status docker
-
-#CentOS 7、Debian、Ubuntu
-docker pull nextcloud
-docker run -d --restart=always --name nextcloud -p 82:80 nextcloud
-echo "http://服务器IP地址或域名:82 面板添加账号，苹果浏览器支持不好"
